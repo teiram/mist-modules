@@ -98,10 +98,10 @@ reg [4:0] t = STATE_FIRST;
 
 // wait 1ms (32 8Mhz cycles) after FPGA config is done before going
 // into normal operation. Initialize the ram in the last 16 reset cycles (cycles 15-0)
-reg [4:0] reset = 5'h1f;
+reg [5:0] reset = 6'h2f;
 always @(posedge clk_96 or posedge init) begin
 	if(init) begin
-		reset <= 5'h1f;
+		reset <= 6'h2f;
 		t <= STATE_FIRST;
 	end
 	else
@@ -227,14 +227,14 @@ always @(posedge clk_96) begin
 			end else if (vidin_req) begin
 				vidwrite<=1'b1;
 				sd_ba <= 2'b11;
-				sd_addr <= {vidin_frame,vidin_col[9:5],vidin_row[9:4]};
+				sd_addr <= {vidin_col[9:4],vidin_row[9:4]};
 //				$display("vidwrite (%t) bank %d, row %h", $time, {1'b1,vidin_col[3]}, {2'b11,vidin_frame,vidin_col[9:4],~vidin_row[9:6]});
 				sd_cmd <= CMD_ACTIVE;
 			end else if (vidout_req) begin
 				vidread<=1'b1;
 				// ba(0) <= x(3); // Stripe adjacent pixel blocks across banks
 				sd_ba <= 2'b11;
-				sd_addr <= {vidout_frame,vidout_row[9:5],vidout_col[9:4]};
+				sd_addr <= {vidout_row[9:4],vidout_col[9:4]};
 				sd_cmd <= CMD_ACTIVE;
 //				$display("vidread  (%t) read bank %d, row %h", $time, {1'b1,vidout_row[3]}, {2'b11,vidout_frame,vidout_row[9:4],~vidout_col[9:6]});
 
@@ -267,9 +267,8 @@ always @(posedge clk_96) begin
 				sd_addr[12:11] <= 2'b00;
 				sd_addr[10] <= 1'b0;
 				sd_ba <= 2'b11;
-				if(t==STATE_CMD_CONT+8)
-					sd_addr[10] <= 1'b1;	// Auto precharge
-				sd_addr[9:0] <= {vidin_row[10],vidin_col[4:0],vidin_row[3:0]};
+				if (t== STATE_CMD_CONT + 8) sd_addr[10] <= 1'b1;                // Auto precharge
+				sd_addr[7:0] <= {vidin_col[3:0], vidin_row[3:0]};
 				sd_cmd<=CMD_WRITE;
 //				$display("vidwrite (%t) bank %d, col %h", $time, sd_ba, {1'b0,vidin_col[2:0],~vidin_row[5:0]});
 			end
@@ -287,17 +286,18 @@ always @(posedge clk_96) begin
 		if(vidread) begin
 			if(t == STATE_CMD_CONT) begin
 				sd_addr[12:11] <= 2'b00;
+                sd_ba <= 2'b11;
 				sd_addr[10] <= 1'b1; // Auto precharge
-				sd_addr[9:0] <= {vidout_col[10],vidout_row[4:0],vidout_col[3],3'b0};
+				sd_addr[7:0] <= {vidout_row[3:0],vidout_col[3],3'b0};
 				sd_cmd <= CMD_READ;
 //				$display("vidread  (%t) column %h", $time, {1'b0,vidout_row[2:0],vidout_col[5:0]});
 			end
 			if(t>=STATE_CMD_CONT) sd_dqm <= 2'b00;
 
 			if(t>=STATE_READ && t<(STATE_READ+8)) begin
-				vidout_q<=sd_din;
+				vidout_q <= sd_din;
 				vidout_ack <= 1'b1;
-			end			
+			end
 		end
 
 
