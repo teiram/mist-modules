@@ -211,8 +211,8 @@ always @(posedge clk_96) begin
 
 				// RAS phase
 				sd_cmd <= CMD_ACTIVE;
-				sd_addr <= ram_addr[21:9];
-				sd_ba <= {1'b0,ram_addr[22]};
+				sd_addr <= ram_addr[19:8];
+				sd_ba <= {1'b0,ram_addr[20]};
 
 			end else if (rom_oe && (addr_latch != rom_addr)) begin
 				addr_latch <= rom_addr;
@@ -222,8 +222,8 @@ always @(posedge clk_96) begin
 
 				// RAS phase
 				sd_cmd <= CMD_ACTIVE;
-				sd_addr <= rom_addr[21:9];
-				sd_ba <= {1'b0,rom_addr[22]};
+				sd_addr <= rom_addr[19:8];
+				sd_ba <= {1'b0,rom_addr[20]};
 			end else if (vidin_req) begin
 				vidwrite<=1'b1;
 				sd_ba <= 2'b11;
@@ -306,20 +306,20 @@ always @(posedge clk_96) begin
 
 			// CAS phase 
 			if(t == STATE_CMD_CONT) begin
-				sd_cmd <= we_latch?CMD_WRITE:CMD_READ;
+				sd_cmd <= we_latch ? CMD_WRITE : CMD_READ;
 				if (we_latch) begin
 					sd_data_reg <= din_latch;
-					drive_dq<=1'b1;
+					drive_dq <= 1'b1;
 					ram_ack <= ram_req;
 				end
 				// always return both bytes in a read. The cpu may not
 				// need it, but the caches need to be able to store everything
 				sd_dqm <= we_latch ? ~ram_ds : 2'b00;
 
-				sd_addr <= { we_latch ? 4'b0010 : 4'b0000, addr_latch[8:0] };  // auto precharge for writes only
+				sd_addr <= { we_latch ? 5'b00100 : 5'b00000, addr_latch[7:0]};  // auto precharge for writes only
 			end
 
-			if(t == STATE_CMD_CONT+3) begin
+			if(t == STATE_CMD_CONT + 3) begin
 				if(!we_latch) begin
 					sd_cmd <= CMD_PRECHARGE;
 					sd_addr[10]<=1'b0;
