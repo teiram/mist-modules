@@ -26,8 +26,8 @@ port (
 	SPI_CLK, SPI_SS_IO, SPI_MOSI :in std_logic;
 	SPI_MISO          : out std_logic;
 	conf_str          : in std_logic_vector(8*STRLEN-1 downto 0) := (others => '0');
-	conf_addr         : out std_logic_vector(9 downto 0);
-	conf_chr          : in  std_logic_vector(7 downto 0) := (others => '0');
+	conf_addr         : out std_logic_vector(10 downto 0);
+	conf_chr          : in  std_logic_vector( 7 downto 0) := (others => '0');
 	joystick_0        : out std_logic_vector(31 downto 0);
 	joystick_1        : out std_logic_vector(31 downto 0);
 	joystick_2        : out std_logic_vector(31 downto 0);
@@ -41,7 +41,7 @@ port (
 	scandoubler_disable : out std_logic;
 	ypbpr             : out std_logic;
 	no_csync          : out std_logic;
-	core_mod          : out std_logic_vector(6 downto 0);
+	core_mod          : out std_logic_vector(62 downto 0);
 
 	sd_lba            : in  std_logic_vector(31 downto 0) := (others => '0');
 	sd_rd             : in  std_logic_vector(SD_IMAGES-1 downto 0) := (others => '0');
